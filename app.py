@@ -28,11 +28,7 @@ def load_data():
     walmart_data['Prescription Value'] = walmart_data['Prescription Value'].astype(float)
     
     # Extracting temporal features from 'Date Dispensed'
-#     walmart_data['Date Dispensed'] = pd.to_datetime(walmart_data['Date Dispensed'], format='mixed')
-#     walmart_data['Date Dispensed'] = pd.to_datetime(walmart_data['Date Dispensed'], format='%m/%d/%Y %H:%M')
-#     walmart_data['Date Dispensed'] = pd.to_datetime(walmart_data['Date Dispensed'], format='%d/%m/%Y %H:%M')
     walmart_data['Date Dispensed'] = pd.to_datetime(walmart_data['Date Dispensed'], format='%d/%m/%Y %H:%M', errors='coerce')
-    #     walmart_data['Date Dispensed'] = pd.to_datetime(walmart_data['Date Dispensed'])
     walmart_data['Hour'] = walmart_data['Date Dispensed'].dt.hour
     walmart_data['Day'] = walmart_data['Date Dispensed'].dt.day_name()
     walmart_data['Week'] = walmart_data['Date Dispensed'].dt.isocalendar().week
@@ -95,8 +91,6 @@ from_date = st.date_input(
     value=min_date
 )
 
-# from_date = st.date_input("From Date", min_value=data['Date Dispensed'].min().date(), max_value=data['Date Dispensed'].max().date(), value=data['Date Dispensed'].min().date())
-# to_date = st.date_input("To Date", min_value=from_date, max_value=data['Date Dispensed'].max().date(), value=data['Date Dispensed'].max().date())
 # Check again to ensure 'valid_dates' isn't empty, especially if it's recalculated or modified
 if not valid_dates.empty:
     min_date = valid_dates.min().date()
@@ -140,7 +134,7 @@ branch_performance.columns = ['_'.join(col).strip() for col in branch_performanc
 branch_performance = branch_performance.rename(columns={'Branch_': 'Branch'})
 
 # Function to create heatmap
-def generate_heatmap(data, column):
+def generate_heatmap(data, column, metric):
     days_order = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
     heatmap_data = data.groupby(['Hour', 'Day']).agg({column:'sum'}).unstack().fillna(0)
     heatmap_data.columns = heatmap_data.columns.get_level_values(1)
@@ -154,7 +148,7 @@ def generate_heatmap(data, column):
      # # Calculate daily totals
     daily_totals = heatmap_data.sum()
     heatmap_data = heatmap_data.append(pd.DataFrame([daily_totals], index=['Total']))
-        
+           
     heatmap_data = heatmap_data.sort_index(ascending=False)  # Order hours from morning to evening
     
     fig, ax = plt.subplots(figsize=(10, 8))
@@ -168,21 +162,6 @@ def generate_heatmap(data, column):
     plt.yticks(rotation=0)
     plt.title(f"Heatmap of {metric} by Hour and Day")
     return fig
-
-#     fig, ax = plt.subplots(figsize=(12, 8))
-#     if column == 'Prescription Value':
-#         sns.heatmap(heatmap_data, cmap="YlGnBu", linewidths=0.5, ax=ax, annot=True, cbar=False, fmt="g", annot_kws={"size": 10, "weight": "bold"})
-#         # Format the annotations as currency
-#         for t in ax.texts:
-#             t.set_text('${:,.2f}'.format(float(t.get_text())))
-#     else:
-#         sns.heatmap(heatmap_data, cmap="YlGnBu", linewidths=0.5, ax=ax, annot=True, cbar=False, fmt="g", annot_kws={"size": 10, "weight": "bold"})
-#         # Format the annotations with comma
-#         for t in ax.texts:
-#             t.set_text('{:,.0f}'.format(float(t.get_text())))
-#     ax.set_ylabel('Hour')
-#     ax.set_xlabel('Day')
-#     return fig
 
 # Dynamic title based on selected values with reduced font size
 title_branch = f"Branch: {selected_branch}" if selected_branch != "All" else "All Branches"
