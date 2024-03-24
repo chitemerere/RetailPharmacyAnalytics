@@ -75,8 +75,47 @@ st.markdown(
 
 # User input for filters
 selected_branch = st.selectbox("Select a branch for analysis:", ["All"] + sorted(data['Branch'].unique()))
-from_date = st.date_input("From Date", min_value=data['Date Dispensed'].min().date(), max_value=data['Date Dispensed'].max().date(), value=data['Date Dispensed'].min().date())
-to_date = st.date_input("To Date", min_value=from_date, max_value=data['Date Dispensed'].max().date(), value=data['Date Dispensed'].max().date())
+# Remove NaT values before calculating min/max
+valid_dates = data['Date Dispensed'].dropna()
+
+# Now it's safe to calculate min and max, but let's also ensure there's at least one valid date
+if not valid_dates.empty:
+    min_date = valid_dates.min().date()
+    max_date = valid_dates.max().date()
+else:
+    # Fallback to today's date or any other default date if no valid dates are present
+    from datetime import date
+    min_date = max_date = date.today()
+
+# Use min_date and max_date in st.date_input
+from_date = st.date_input(
+    "From Date", 
+    min_value=min_date,
+    max_value=max_date,
+    value=min_date
+)
+
+# from_date = st.date_input("From Date", min_value=data['Date Dispensed'].min().date(), max_value=data['Date Dispensed'].max().date(), value=data['Date Dispensed'].min().date())
+# to_date = st.date_input("To Date", min_value=from_date, max_value=data['Date Dispensed'].max().date(), value=data['Date Dispensed'].max().date())
+# Check again to ensure 'valid_dates' isn't empty, especially if it's recalculated or modified
+if not valid_dates.empty:
+    min_date = valid_dates.min().date()
+    max_date = valid_dates.max().date()
+else:
+    # Fallback to today's date or any other default date if no valid dates are present
+    min_date = max_date = date.today()
+
+# Assuming the "From Date" is already set up as 'from_date'
+# You might want to set the "To Date" to either the max date from the data or today's date
+to_date_default = max_date if not valid_dates.empty else date.today()
+
+# Use min_date and max_date for the "To Date" input, with a sensible default
+to_date = st.date_input(
+    "To Date", 
+    min_value=min_date,  # This ensures the date range makes sense
+    max_value=max_date,  # Adjust this as needed, could be date.today() for more flexibility
+    value=to_date_default  # Set this to your preferred default value within the valid range
+)
 selected_drug = st.selectbox("Select a drug for analysis:", ["All"] + sorted(data['Drug Name'].unique()))
 
 # Filter data based on user input
