@@ -147,7 +147,8 @@ def generate_heatmap(data, column, metric):
     
      # # Calculate daily totals
     daily_totals = heatmap_data.sum()
-    heatmap_data = heatmap_data.append(pd.DataFrame([daily_totals], index=['Total']))
+    heatmap_data = pd.concat([heatmap_data, pd.DataFrame([daily_totals], index=['Total'])], axis=0)
+#     heatmap_data = heatmap_data.append(pd.DataFrame([daily_totals], index=['Total']))
            
     heatmap_data = heatmap_data.sort_index(ascending=False)  # Order hours from morning to evening
     
