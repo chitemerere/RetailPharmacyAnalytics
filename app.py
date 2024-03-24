@@ -171,7 +171,8 @@ st.markdown(f"<h3 style='font-size: 16px;'>Analysis for {title_branch}{title_dru
 
 # Heatmap for Quantity Dispensed
 st.subheader("Heatmap for Quantity Dispensed")
-fig1 = generate_heatmap(filtered_data, 'Quantity Dispensed')
+# fig1 = generate_heatmap(filtered_data, 'Quantity Dispensed')
+fig1 = generate_heatmap(filtered_data, 'Quantity Dispensed', 'Quantity Dispensed')
 st.pyplot(fig1)
 
 # Heatmap for Prescription Value
