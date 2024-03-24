@@ -18,7 +18,7 @@ def get_image_base64(image_path):
         return base64.b64encode(img_file.read()).decode('utf-8')
 
 # Load and preprocess the data
-@st.cache_resource
+@st.cache_data
 def load_data():
     walmart_data = pd.read_csv("RetailAnalyticsWalmart.csv")
     
@@ -28,9 +28,9 @@ def load_data():
     walmart_data['Prescription Value'] = walmart_data['Prescription Value'].astype(float)
     
     # Extracting temporal features from 'Date Dispensed'
-    walmart_data['Date Dispensed'] = pd.to_datetime(walmart_data['Date Dispensed'], format='mixed')
+#     walmart_data['Date Dispensed'] = pd.to_datetime(walmart_data['Date Dispensed'], format='mixed')
 #     walmart_data['Date Dispensed'] = pd.to_datetime(walmart_data['Date Dispensed'], format='%m/%d/%Y %H:%M')
-    # walmart_data['Date Dispensed'] = pd.to_datetime(walmart_data['Date Dispensed'], format='%d/%m/%Y %H:%M')
+    walmart_data['Date Dispensed'] = pd.to_datetime(walmart_data['Date Dispensed'], format='%d/%m/%Y %H:%M')
     #     walmart_data['Date Dispensed'] = pd.to_datetime(walmart_data['Date Dispensed'])
     walmart_data['Hour'] = walmart_data['Date Dispensed'].dt.hour
     walmart_data['Day'] = walmart_data['Date Dispensed'].dt.day_name()
@@ -61,23 +61,6 @@ def additional_transformations(data):
     return data
 
 data = additional_transformations(data)
-
-
-# #######  Slow Moving Products
-# # Define criteria for slow-moving product. Here, I'm assuming a product is slow-moving if its average quantity sold is less than 5.
-# # You can adjust this threshold as needed.
-# threshold = 5
-
-# # Group by branch and product to find average quantity sold
-# average_sales = data.groupby(['Branch', 'Drug Name'])['Quantity Dispensed'].mean().reset_index()
-
-# # Identify slow-moving products for each branch
-# slow_moving_products = average_sales[average_sales['Quantity Dispensed'] < threshold]
-
-# # List of branches with slow-moving products
-# branches_with_slow_moving = slow_moving_products['Branch'].unique()
-# ######
-
 
 # Streamlit app with adjusted title size using inline CSS
 st.markdown("<h1 style='text-align: center; font-size: 20px;'>Walmart Pharmacies Customer Traffic Patterns Analysis</h1>", unsafe_allow_html=True)
@@ -128,22 +111,38 @@ def generate_heatmap(data, column):
             heatmap_data[day] = 0
     heatmap_data = heatmap_data[days_order]
     
+     # # Calculate daily totals
+    daily_totals = heatmap_data.sum()
+    heatmap_data = heatmap_data.append(pd.DataFrame([daily_totals], index=['Total']))
+        
     heatmap_data = heatmap_data.sort_index(ascending=False)  # Order hours from morning to evening
-
-    fig, ax = plt.subplots(figsize=(12, 8))
-    if column == 'Prescription Value':
-        sns.heatmap(heatmap_data, cmap="YlGnBu", linewidths=0.5, ax=ax, annot=True, cbar=False, fmt="g", annot_kws={"size": 10, "weight": "bold"})
-        # Format the annotations as currency
-        for t in ax.texts:
-            t.set_text('${:,.2f}'.format(float(t.get_text())))
-    else:
-        sns.heatmap(heatmap_data, cmap="YlGnBu", linewidths=0.5, ax=ax, annot=True, cbar=False, fmt="g", annot_kws={"size": 10, "weight": "bold"})
-        # Format the annotations with comma
-        for t in ax.texts:
-            t.set_text('{:,.0f}'.format(float(t.get_text())))
-    ax.set_ylabel('Hour')
-    ax.set_xlabel('Day')
+    
+    fig, ax = plt.subplots(figsize=(10, 8))
+    
+    # Use appropriate formatting for metric
+    if metric == 'Prescription Value':
+        sns.heatmap(heatmap_data, cmap="YlGnBu", linewidths=0.5, ax=ax, annot=True, cbar=False, fmt="${:,.0f}")
+    else:  # 'Quantity Dispensed'
+        sns.heatmap(heatmap_data, cmap="YlGnBu", linewidths=0.5, ax=ax, annot=True, cbar=False, fmt="{:,.0f}")
+        
+    plt.yticks(rotation=0)
+    plt.title(f"Heatmap of {metric} by Hour and Day")
     return fig
+
+#     fig, ax = plt.subplots(figsize=(12, 8))
+#     if column == 'Prescription Value':
+#         sns.heatmap(heatmap_data, cmap="YlGnBu", linewidths=0.5, ax=ax, annot=True, cbar=False, fmt="g", annot_kws={"size": 10, "weight": "bold"})
+#         # Format the annotations as currency
+#         for t in ax.texts:
+#             t.set_text('${:,.2f}'.format(float(t.get_text())))
+#     else:
+#         sns.heatmap(heatmap_data, cmap="YlGnBu", linewidths=0.5, ax=ax, annot=True, cbar=False, fmt="g", annot_kws={"size": 10, "weight": "bold"})
+#         # Format the annotations with comma
+#         for t in ax.texts:
+#             t.set_text('{:,.0f}'.format(float(t.get_text())))
+#     ax.set_ylabel('Hour')
+#     ax.set_xlabel('Day')
+#     return fig
 
 # Dynamic title based on selected values with reduced font size
 title_branch = f"Branch: {selected_branch}" if selected_branch != "All" else "All Branches"
