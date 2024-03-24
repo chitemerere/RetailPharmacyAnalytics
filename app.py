@@ -30,7 +30,8 @@ def load_data():
     # Extracting temporal features from 'Date Dispensed'
 #     walmart_data['Date Dispensed'] = pd.to_datetime(walmart_data['Date Dispensed'], format='mixed')
 #     walmart_data['Date Dispensed'] = pd.to_datetime(walmart_data['Date Dispensed'], format='%m/%d/%Y %H:%M')
-    walmart_data['Date Dispensed'] = pd.to_datetime(walmart_data['Date Dispensed'], format='%d/%m/%Y %H:%M')
+#     walmart_data['Date Dispensed'] = pd.to_datetime(walmart_data['Date Dispensed'], format='%d/%m/%Y %H:%M')
+    walmart_data['Date Dispensed'] = pd.to_datetime(walmart_data['Date Dispensed'], format='%d/%m/%Y %H:%M', errors='coerce')
     #     walmart_data['Date Dispensed'] = pd.to_datetime(walmart_data['Date Dispensed'])
     walmart_data['Hour'] = walmart_data['Date Dispensed'].dt.hour
     walmart_data['Day'] = walmart_data['Date Dispensed'].dt.day_name()
