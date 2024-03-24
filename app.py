@@ -18,7 +18,7 @@ def get_image_base64(image_path):
         return base64.b64encode(img_file.read()).decode('utf-8')
 
 # Load and preprocess the data
-@st.cache_data
+# @st.cache
 def load_data():
     walmart_data = pd.read_csv("RetailAnalyticsWalmart.csv")
     
